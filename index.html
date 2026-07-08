@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Biplab Bothra Institute | Complete Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
+    body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:10px}
+    .app-container{width:100%;max-width:1500px;background:white;border-radius:25px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:97vh}
+    .app-header{background:linear-gradient(135deg,#1a237e,#0d47a1);color:white;padding:8px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+    .institute-name h1{font-size:1.2rem;font-weight:700}.institute-name small{font-size:0.65rem;color:#bbdefb}
+    .header-right{display:flex;align-items:center;gap:6px}
+    .live-clock{background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:6px;text-align:center;min-width:140px}
+    .live-clock .time{font-size:1.1rem;font-weight:700}.live-clock .date{font-size:0.62rem;color:#bbdefb}
+    .db-status{padding:3px 8px;border-radius:12px;font-size:0.65rem;font-weight:600}
+    .db-connected{background:#d1fae5;color:#065f46}.db-disconnected{background:#fee2e2;color:#991b1b}
+    .role-tabs{display:flex;gap:2px;background:rgba(255,255,255,0.12);padding:2px;border-radius:20px}
+    .role-btn{padding:5px 12px;border:none;background:transparent;color:#ccdbe9;font-weight:600;border-radius:18px;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;gap:3px}
+    .role-btn.active{background:white;color:#1a237e}
+    .main-content{display:flex;flex:1;overflow:hidden}
+    .sidebar{width:170px;background:#f8fafc;border-right:1px solid #e5e7eb;padding:6px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+    .sidebar-btn{padding:6px 8px;border:none;background:white;border-radius:5px;cursor:pointer;font-weight:500;font-size:0.7rem;display:flex;align-items:center;gap:4px;border:1px solid transparent}
+    .sidebar-btn:hover{background:#e0e7ff;border-color:#1a237e}.sidebar-btn.active{background:#1a237e;color:white}
+    .content-area{flex:1;overflow-y:auto;padding:10px 12px;background:#f9fafc}
+    .section{display:none}.section.active{display:block}
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+    .stat-card{background:white;border-radius:12px;padding:10px;box-shadow:0 2px 6px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-between}
+    .stat-value{font-size:1.3rem;font-weight:700}
+    .table-wrapper{background:white;border-radius:10px;padding:8px;box-shadow:0 2px 4px rgba(0,0,0,0.03);border:1px solid #e9eef3;overflow-x:auto;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:0.72rem}
+    th{text-align:left;padding:5px 3px;color:#4b5563;border-bottom:2px solid #e5e7eb;font-weight:600;background:#f8fafc;white-space:nowrap}
+    td{padding:5px 3px;border-bottom:1px solid #f1f5f9}
+    .badge{padding:2px 6px;border-radius:10px;font-weight:600;font-size:0.6rem;white-space:nowrap}
+    .badge-present{background:#d1fae5;color:#065f46}.badge-absent{background:#fee2e2;color:#991b1b}
+    .badge-paid{background:#d1fae5;color:#065f46}.badge-unpaid{background:#fee2e2;color:#991b1b}
+    .badge-partial{background:#fef3c7;color:#92400e}
+    .btn{padding:3px 7px;border-radius:4px;border:none;cursor:pointer;font-weight:600;font-size:0.68rem;display:inline-flex;align-items:center;gap:2px}
+    .btn:hover{opacity:0.85}.btn:disabled{opacity:0.5;cursor:not-allowed}
+    .btn-primary{background:#1a237e;color:white}.btn-success{background:#16a34a;color:white}
+    .btn-warning{background:#ea580c;color:white}.btn-danger{background:#dc2626;color:white}
+    .btn-whatsapp{background:#25D366;color:white}.btn-excel{background:#217346;color:white}
+    .btn-info{background:#0891b2;color:white}
+    .flex-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:6px}
+    select,input,textarea{padding:3px 6px;border-radius:4px;border:1px solid #d1d5db;font-size:0.72rem}
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:1000}
+    .modal-content{background:white;padding:15px;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.3);width:90%;max-width:600px;max-height:80vh;overflow-y:auto}
+    .toast-container{position:fixed;top:10px;right:10px;z-index:2000;display:flex;flex-direction:column;gap:4px}
+    .toast{padding:8px 12px;border-radius:6px;color:white;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.2);animation:slideIn 0.3s ease-out;display:flex;align-items:center;gap:4px;font-size:0.75rem}
+    .toast-success{background:#16a34a}.toast-warning{background:#ea580c}.toast-info{background:#2563eb}.toast-error{background:#dc2626}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .student-list-item{cursor:pointer}.student-list-item:hover{background:#e0e7ff}
+    .student-list-item.selected{background:#dbeafe;border-left:2px solid #1a237e}
+    .month-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(55px,1fr));gap:2px;margin:4px 0}
+    .month-box{padding:3px;border-radius:3px;text-align:center;font-size:0.55rem;border:1px solid transparent}
+    .month-box.paid{background:#d1fae5;border-color:#16a34a}.month-box.unpaid{background:#fee2e2;border-color:#dc2626}
+    .month-box.partial{background:#fef3c7;border-color:#f59e0b}
+    .profile-card{background:white;border-radius:10px;padding:12px}
+    .profile-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #e5e7eb}
+    .profile-avatar{width:45px;height:45px;border-radius:50%;background:#1a237e;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;font-weight:700;flex-shrink:0}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px}
+    .info-card{background:#f8fafc;padding:8px;border-radius:6px;border:1px solid #e5e7eb}
+    .info-card h4{color:#1a237e;font-size:0.68rem;margin-bottom:3px}
+    .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin-bottom:10px}
+    .student-select-card{background:white;border-radius:6px;padding:8px;cursor:pointer;border:2px solid transparent;text-align:center}
+    .student-select-card:hover{border-color:#1a237e;background:#e0e7ff}.student-select-card.selected{border-color:#1a237e;background:#dbeafe}
+    .student-select-card .avatar{width:35px;height:35px;border-radius:50%;background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;margin:0 auto 4px}
+    .empty-state{text-align:center;padding:20px;color:#9ca3af}
+    @media(max-width:768px){.main-content{flex-direction:column}.sidebar{width:100%;flex-direction:row;flex-wrap:wrap;padding:4px}.sidebar-btn{flex:1;min-width:80px;font-size:0.62rem;padding:4px 5px}}
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <header class="app-header">
+    <div class="institute-name"><h1>Biplab Bothra Institute</h1><small>Est. 1995 | MongoDB Atlas</small></div>
+    <div class="header-right">
+      <span class="db-status db-disconnected" id="dbStatus"><i class="fas fa-database"></i> <span id="dbText">Offline</span></span>
+      <div class="live-clock"><div class="time" id="liveTime">--:--:--</div><div class="date" id="liveDate">---</div></div>
+    </div>
+    <div class="role-tabs">
+      <button class="role-btn active" id="teacherRoleBtn" onclick="switchRole('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+      <button class="role-btn" id="studentRoleBtn" onclick="switchRole('student')"><i class="fas fa-user-graduate"></i> Student</button>
+    </div>
+  </header>
+  <div class="main-content">
+    <div class="sidebar" id="teacherSidebar">
+      <button class="sidebar-btn active" onclick="showSec('dashboard')"><i class="fas fa-th-large"></i> Dashboard</button>
+      <button class="sidebar-btn" onclick="showSec('attendance')"><i class="fas fa-clipboard-check"></i> Attendance</button>
+      <button class="sidebar-btn" onclick="showSec('students')"><i class="fas fa-user-graduate"></i> Students</button>
+      <button class="sidebar-btn" onclick="showSec('fees')"><i class="fas fa-coins"></i> Fees</button>
+      <button class="sidebar-btn" onclick="showSec('tests')"><i class="fas fa-file-pen"></i> Tests</button>
+      <button class="sidebar-btn" onclick="showSec('whatsapp')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+    </div>
+    <div class="sidebar" id="studentSidebar" style="display:none;">
+      <button class="sidebar-btn active" onclick="showStuView('home')">Profile</button>
+      <button class="sidebar-btn" onclick="showStuView('fees')">Fees</button>
+      <button class="sidebar-btn" onclick="showStuView('attendance')">Attendance</button>
+      <button class="sidebar-btn" onclick="showStuView('tests')">Tests</button>
+    </div>
+    <div class="content-area" id="contentArea">
+      <div class="section active" id="sec-dashboard"><h2>Dashboard</h2><div class="cards-grid"><div class="stat-card"><div><h4>Students</h4><div class="stat-value" id="dashTotal">0</div></div></div><div class="stat-card"><div><h4>Present</h4><div class="stat-value" id="dashPresent" style="color:#16a34a;">0</div></div></div><div class="stat-card"><div><h4>Absent</h4><div class="stat-value" id="dashAbsent" style="color:#dc2626;">0</div></div></div><div class="stat-card"><div><h4>Pending</h4><div class="stat-value" id="dashPending" style="color:#dc2626;">₹0</div></div></div></div></div>
+      <div class="section" id="sec-attendance"><h2>Attendance</h2><div class="flex-row"><button class="btn btn-success" onclick="markAllPresent()">Mark All Present</button><button class="btn btn-excel" onclick="exportAttendanceExcel()">Export</button></div><div class="table-wrapper"><table id="attTable"><thead><tr><th>Student</th><th>Std</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="section" id="sec-students"><h2>Students</h2><div class="flex-row"><button class="btn btn-primary" onclick="openStudentModal()">Add Student</button></div><div style="display:grid;grid-template-columns:200px 1fr;gap:8px;"><div class="table-wrapper" style="max-height:400px;overflow-y:auto;"><table><thead><tr><th>Student</th></tr></thead><tbody id="stuListBody"></tbody></table></div><div id="stuDetailPanel" class="profile-card"><div class="empty-state"><p>Select a student</p></div></div></div></div>
+      <div class="section" id="sec-fees"><h2>Fees</h2><div class="flex-row"><button class="btn btn-success" onclick="openFeeModal()">Record Payment</button><button class="btn btn-excel" onclick="exportFeeExcel()">Export</button></div><div class="table-wrapper"><table id="feeTable"><thead><tr><th>Student</th><th>Monthly</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="section" id="sec-tests"><h2>Tests</h2><button class="btn btn-primary" onclick="openTestModal()">Add Test</button><div class="table-wrapper" style="margin-top:6px;"><table id="testTable"><thead><tr><th>Student</th><th>Test</th><th>Marks</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="section" id="sec-whatsapp"><h2>WhatsApp</h2><div class="table-wrapper"><table id="waTable"><thead><tr><th>Student</th><th>Number</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="section" id="sec-stu-home"><div id="stuHomeContent"></div></div>
+      <div class="section" id="sec-stu-fees"><div id="stuFeesContent"></div></div>
+      <div class="section" id="sec-stu-att"><div id="stuAttContent"></div></div>
+      <div class="section" id="sec-stu-tests"><div id="stuTestContent"></div></div>
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Student Modal -->
+<div class="modal-overlay" id="studentModal"><div class="modal-content"><h3 id="stuModalTitle">Add Student</h3><div style="display:grid;gap:5px;"><input type="text" id="sName" placeholder="Full Name *"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;"><select id="sStandard"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="5">5th</option><option value="6">6th</option><option value="7">7th</option><option value="8">8th</option><option value="9">9th</option><option value="10">10th</option><option value="11">11th</option><option value="12">12th</option></select><input type="number" id="sMonthlyFee" placeholder="Monthly Fee *"></div><input type="tel" id="sWhatsApp" placeholder="WhatsApp *"><input type="text" id="sParent" placeholder="Parent Name"><input type="hidden" id="editSid"><div style="display:flex;gap:5px;"><button class="btn btn-primary" onclick="saveStudent()" style="flex:1;">Save</button><button class="btn" onclick="closeModal('studentModal')" style="flex:1;">Cancel</button></div></div></div></div>
+
+<!-- Fee Modal -->
+<div class="modal-overlay" id="feeModal"><div class="modal-content"><h3>Record Payment</h3><select id="feeStuSelect"><option value="">Select Student</option></select><div style="display:flex;gap:4px;margin-top:6px;"><input type="number" id="feeAmt" placeholder="Amount" style="flex:1;"><input type="text" id="feeMonth" placeholder="Month (YYYY-MM)" style="width:120px;"><button class="btn btn-success" onclick="recordPayment()">Record</button></div></div></div>
+
+<!-- Test Modal -->
+<div class="modal-overlay" id="testModal"><div class="modal-content"><h3>Add Test</h3><select id="testStuSelect"><option value="">Select Student</option></select><input type="text" id="testName" placeholder="Test Name" style="width:100%;margin-top:5px;"><input type="text" id="testMarks" placeholder="Marks (e.g. 85/100)" style="width:100%;margin-top:5px;"><input type="text" id="testRemark" placeholder="Remark" style="width:100%;margin-top:5px;"><button class="btn btn-primary" onclick="saveTest()" style="width:100%;margin-top:5px;">Save</button></div></div>
+
+<script>
+// ==================== CONFIG ====================
+const API = 'http://localhost:5000/api';
+let S=[],A=[],T=[],F=[],selSid=null,viewSid=null,curRole='teacher';
+
+// ==================== IST TIME ====================
+const getIST=()=>{const n=new Date();return new Date(n.getTime()+(n.getTimezoneOffset()*60000)+(5.5*3600000));};
+const todayIST=()=>{const i=getIST();return `${i.getFullYear()}-${String(i.getMonth()+1).padStart(2,'0')}-${String(i.getDate()).padStart(2,'0')}`;};
+const timeIST=()=>getIST().toLocaleTimeString('en-IN',{hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+setInterval(()=>{const i=getIST();document.getElementById('liveTime').textContent=i.toLocaleTimeString('en-IN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});document.getElementById('liveDate').textContent=i.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});},1000);
+
+// ==================== TOAST ====================
+const toast=(m,t='info')=>{const c=document.getElementById('toastContainer');if(!c)return;const d=document.createElement('div');d.className=`toast toast-${t}`;d.innerHTML=`<i class="fas fa-${t==='success'?'check':t==='warning'?'exclamation':t==='error'?'times':'info'}-circle"></i> ${m}`;c.appendChild(d);setTimeout(()=>d.remove(),3000);};
+
+// ==================== API CALLS ====================
+async function api(url,opts={}){
+  try{
+    const res=await fetch(`${API}${url}`,{headers:{'Content-Type':'application/json'},...opts});
+    if(!res.ok)throw new Error('API Error');
+    return await res.json();
+  }catch(e){console.error(e);return null;}
+}
+
+async function loadAll(){
+  const stu=await api('/students');
+  if(stu&&stu.success){S=stu.data;document.getElementById('dbStatus').className='db-status db-connected';document.getElementById('dbText').textContent='Atlas';}
+  else{document.getElementById('dbStatus').className='db-status db-disconnected';document.getElementById('dbText').textContent='Offline';}
+  const att=await api('/attendance/today');
+  if(att&&att.success)A=att.data;
+  const tst=await api('/tests');
+  if(tst&&tst.success)T=tst.data;
+  const fee=await api('/fees');
+  if(fee&&fee.success)F=fee.data;
+}
+
+// ==================== ROLE ====================
+function switchRole(r){curRole=r;document.getElementById('teacherRoleBtn').classList.toggle('active',r==='teacher');document.getElementById('studentRoleBtn').classList.toggle('active',r==='student');document.getElementById('teacherSidebar').style.display=r==='teacher'?'flex':'none';document.getElementById('studentSidebar').style.display=r==='student'?'flex':'none';document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));if(r==='teacher'){document.getElementById('sec-dashboard').classList.add('active');renderDashboard();}else{showStuView('home');}}
+
+// ==================== SECTIONS ====================
+function showSec(s){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));const sec=document.getElementById(`sec-${s}`);if(sec)sec.classList.add('active');const m={dashboard:0,attendance:1,students:2,fees:3,tests:4,whatsapp:5};document.querySelectorAll('#teacherSidebar .sidebar-btn').forEach((b,i)=>b.classList.toggle('active',i===m[s]));if(s==='dashboard')renderDashboard();else if(s==='attendance')renderAtt();else if(s==='students')renderStuList();else if(s==='fees')renderFees();else if(s==='tests')renderTests();else if(s==='whatsapp')renderWA();}
+
+// ==================== RENDER ====================
+async function renderDashboard(){await loadAll();const td=todayIST();document.getElementById('dashTotal').textContent=S.length;document.getElementById('dashPresent').textContent=A.filter(a=>a.status==='Present').length;document.getElementById('dashAbsent').textContent=A.filter(a=>a.status==='Absent').length;let p=0;F.forEach(f=>{if(f.status!=='paid')p+=(f.amount-f.paidAmount);});document.getElementById('dashPending').textContent='₹'+p;}
+
+async function renderAtt(){await loadAll();const td=todayIST();document.getElementById('attTable').querySelector('tbody').innerHTML=S.map(s=>{const a=A.find(x=>x.studentId&&(x.studentId._id===s._id||x.studentId===s._id));const st=a?a.status:'Present';return`<tr><td>${s.name}</td><td>${s.standard}th</td><td><span class="badge ${st==='Present'?'badge-present':'badge-absent'}">${st}</span></td><td><button class="btn btn-sm ${st==='Present'?'btn-warning':'btn-success'}" onclick="toggleAtt('${s._id}')">Mark ${st==='Present'?'Absent':'Present'}</button></td></tr>`;}).join('')||'<tr><td colspan="4">No students</td></tr>';}
+
+async function renderStuList(){await loadAll();document.getElementById('stuListBody').innerHTML=S.map(s=>`<tr class="student-list-item ${selSid===s._id?'selected':''}" onclick="selStu('${s._id}')"><td>${s.name} (${s.standard}th)</td></tr>`).join('')||'<tr><td>No students</td></tr>';if(selSid)renderStuDet(selSid);}
+
+function selStu(id){selSid=id;document.querySelectorAll('#stuListBody tr').forEach(r=>r.classList.remove('selected'));const rows=document.querySelectorAll('#stuListBody tr');const idx=S.findIndex(s=>s._id===id);if(idx>=0&&rows[idx])rows[idx].classList.add('selected');renderStuDet(id);}
+
+function renderStuDet(id){const s=S.find(x=>x._id===id);if(!s){document.getElementById('stuDetailPanel').innerHTML='<div class="empty-state"><p>Select a student</p></div>';return;}const ff=F.filter(f=>{const sid=f.studentId?._id||f.studentId;return sid===id||sid===s._id;});const tp=ff.reduce((sum,f)=>sum+(f.paidAmount||0),0);const ta=ff.reduce((sum,f)=>sum+f.amount,0);document.getElementById('stuDetailPanel').innerHTML=`<h3>${s.name}</h3><p>Std: ${s.standard}th | WhatsApp: ${s.whatsappNumber}</p><p>Monthly Fee: ₹${s.monthlyFee}</p><p>Total Paid: ₹${tp} | Pending: ₹${ta-tp}</p><button class="btn btn-sm btn-primary" onclick="editStudent('${s._id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s._id}')">Delete</button>`;}
+
+async function renderFees(){await loadAll();document.getElementById('feeTable').querySelector('tbody').innerHTML=S.map(s=>{const ff=F.filter(f=>{const sid=f.studentId?._id||f.studentId;return sid===s._id;});const tp=ff.reduce((sum,f)=>sum+(f.paidAmount||0),0);const ta=ff.reduce((sum,f)=>sum+f.amount,0);return`<tr><td>${s.name}</td><td>₹${s.monthlyFee}</td><td>₹${tp}</td><td style="color:${ta-tp>0?'#dc2626':'#16a34a'}">₹${ta-tp}</td><td><button class="btn btn-sm btn-success" onclick="openFeeModal('${s._id}')">Pay</button></td></tr>`;}).join('')||'<tr><td colspan="5">No students</td></tr>';}
+
+async function renderTests(){await loadAll();document.getElementById('testTable').querySelector('tbody').innerHTML=T.map(t=>{const s=S.find(x=>x._id===(t.studentId?._id||t.studentId));return`<tr><td>${s?s.name:'?'}</td><td>${t.testName}</td><td>${t.marks}</td></tr>`;}).join('')||'<tr><td colspan="3">No tests</td></tr>';}
+
+async function renderWA(){await loadAll();document.getElementById('waTable').querySelector('tbody').innerHTML=S.map(s=>`<tr><td>${s.name}</td><td>${s.whatsappNumber}</td><td><button class="btn btn-sm btn-whatsapp" onclick="sendWA('${s._id}')">Send</button></td></tr>`).join('');}
+
+// ==================== ACTIONS ====================
+async function toggleAtt(sid){const a=A.find(x=>(x.studentId?._id||x.studentId)===sid);const ns=a&&a.status==='Present'?'Absent':'Present';await api('/attendance',{method:'POST',body:JSON.stringify({studentId:sid,status:ns,markedAt:timeIST()})});renderAtt();renderDashboard();}
+
+async function markAllPresent(){await api('/attendance/mark-all',{method:'POST',body:JSON.stringify({markedAt:timeIST()})});renderAtt();renderDashboard();toast('All marked present!','success');}
+
+function openStudentModal(id){
+  if(id){const s=S.find(x=>x._id===id);if(!s)return;document.getElementById('editSid').value=s._id;document.getElementById('sName').value=s.name;document.getElementById('sStandard').value=s.standard;document.getElementById('sMonthlyFee').value=s.monthlyFee;document.getElementById('sWhatsApp').value=s.whatsappNumber||'';document.getElementById('sParent').value=s.parentName||'';document.getElementById('stuModalTitle').textContent='Edit Student';}
+  else{['editSid','sName','sWhatsApp','sParent'].forEach(id=>document.getElementById(id).value='');document.getElementById('sStandard').value='10';document.getElementById('sMonthlyFee').value='2000';document.getElementById('stuModalTitle').textContent='Add Student';}
+  document.getElementById('studentModal').style.display='flex';
+}
+
+function editStudent(id){openStudentModal(id);}
+
+async function saveStudent(){
+  const n=document.getElementById('sName').value.trim(),mf=parseFloat(document.getElementById('sMonthlyFee').value)||0,wn=document.getElementById('sWhatsApp').value.trim(),eid=document.getElementById('editSid').value;
+  if(!n||!mf||!wn){toast('Fill required fields','warning');return;}
+  const d={name:n,standard:document.getElementById('sStandard').value,monthlyFee:mf,whatsappNumber:wn,parentPhone:wn,parentName:document.getElementById('sParent').value.trim()};
+  if(eid){await api(`/students/${eid}`,{method:'PUT',body:JSON.stringify(d)});toast('Updated!','success');}
+  else{await api('/students',{method:'POST',body:JSON.stringify(d)});toast('Added!','success');}
+  closeModal('studentModal');loadAll();renderStuList();renderFees();
+}
+
+async function deleteStudent(id){if(!confirm('Delete this student?'))return;await api(`/students/${id}`,{method:'DELETE'});selSid=null;loadAll();renderStuList();toast('Deleted','warning');}
+
+function openFeeModal(sid){document.getElementById('feeModal').style.display='flex';const sel=document.getElementById('feeStuSelect');sel.innerHTML='<option value="">Select</option>'+S.map(s=>`<option value="${s._id}" ${s._id===sid?'selected':''}>${s.name}</option>`).join('');}
+
+async function recordPayment(){const sid=document.getElementById('feeStuSelect').value,amt=parseFloat(document.getElementById('feeAmt').value),month=document.getElementById('feeMonth').value;if(!sid||!amt||!month){toast('Fill all fields','warning');return;}await api('/fees/pay',{method:'POST',body:JSON.stringify({studentId:sid,month,amount:amt})});closeModal('feeModal');loadAll();renderFees();renderDashboard();toast('Recorded!','success');}
+
+function openTestModal(){document.getElementById('testModal').style.display='flex';const sel=document.getElementById('testStuSelect');sel.innerHTML='<option value="">Select</option>'+S.map(s=>`<option value="${s._id}">${s.name}</option>`).join('');}
+
+async function saveTest(){const sid=document.getElementById('testStuSelect').value,n=document.getElementById('testName').value.trim(),m=document.getElementById('testMarks').value.trim(),r=document.getElementById('testRemark').value.trim();if(!sid||!n){toast('Select student and enter test name','warning');return;}await api('/tests/batch',{method:'POST',body:JSON.stringify({tests:[{studentId:sid,testName:n,marks:m||'N/A',remark:r||''}]})});closeModal('testModal');loadAll();renderTests();toast('Saved!','success');}
+
+function sendWA(sid){const s=S.find(x=>x._id===sid);if(!s||!s.whatsappNumber)return;const num=s.whatsappNumber.replace(/[^0-9]/g,'');window.open(`https://wa.me/${num}?text=${encodeURIComponent('BBI - Message from Biplab Bothra Institute')}`,'_blank');}
+
+// ==================== STUDENT VIEW ====================
+function showStuView(v){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));const sec=document.getElementById(`sec-stu-${v}`);if(sec)sec.classList.add('active');const m={home:0,fees:1,attendance:2,tests:3};document.querySelectorAll('#studentSidebar .sidebar-btn').forEach((b,i)=>b.classList.toggle('active',i===m[v]));
+  if(v==='home'){const c=document.getElementById('stuHomeContent');if(!S.length){c.innerHTML='<div class="empty-state"><p>No students</p></div>';return;}c.innerHTML=`<h2>Select Student</h2><div class="student-grid">${S.map(s=>`<div class="student-select-card ${viewSid===s._id?'selected':''}" onclick="viewStu('${s._id}')"><div class="avatar">${s.name[0]}</div>${s.name}</div>`).join('')}</div><div id="stuProf"></div>`;if(viewSid){const s=S.find(x=>x._id===viewSid);if(s)document.getElementById('stuProf').innerHTML=`<h3>${s.name}</h3><p>Std: ${s.standard}th</p><p>Monthly Fee: ₹${s.monthlyFee}</p><p>WhatsApp: ${s.whatsappNumber}</p>`;}}}
+function viewStu(id){viewSid=id;showStuView('home');}
+
+// ==================== EXPORTS ====================
+function exportAttendanceExcel(){const td=todayIST(),d=[['Student','Std','Status']];S.forEach(s=>{const a=A.find(x=>(x.studentId?._id||x.studentId)===s._id);d.push([s.name,s.standard+'th',a?a.status:'Present']);});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Attendance');XLSX.writeFile(wb,`BBI_Attendance_${td}.xlsx`);toast('Exported!','success');}
+function exportFeeExcel(){const d=[['Student','Std','Monthly','Paid','Pending']];S.forEach(s=>{const ff=F.filter(f=>(f.studentId?._id||f.studentId)===s._id);const tp=ff.reduce((s,f)=>s+(f.paidAmount||0),0);const ta=ff.reduce((s,f)=>s+f.amount,0);d.push([s.name,s.standard+'th',s.monthlyFee,tp,ta-tp]);});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Fees');XLSX.writeFile(wb,`BBI_Fees_${todayIST()}.xlsx`);toast('Exported!','success');}
+
+// ==================== UI ====================
+function closeModal(id){document.getElementById(id).style.display='none';}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.style.display='none';}));
+
+// ==================== INIT ====================
+async function init(){
+  await loadAll();
+  const i=getIST();document.getElementById('liveTime').textContent=i.toLocaleTimeString('en-IN',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});document.getElementById('liveDate').textContent=i.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  renderDashboard();
+}
+init();
+</script>
+</body>
+</html>
